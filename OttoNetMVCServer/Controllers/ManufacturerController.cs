@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OttoNetMVCServer.DAL;
+using OttoNetMVCServer.Models.DBEntities;
 
 namespace OttoNetMVCServer.Controllers
 {
@@ -12,13 +14,36 @@ namespace OttoNetMVCServer.Controllers
         {
             this._context = context;
         }
-        [Route("api/manufacturer")]
+        [HttpGet("api/manufacturer")]
         [Authorize]   //Okta offers a similar set of attributes to either Authorize or AllowAnonymous
-        public IActionResult Index()
+        public IActionResult getManufacturer()
         {
             var manufacturers = _context.Manufacturer.ToList();
 
             return Ok(manufacturers);
+        }
+        [HttpPost("api/manufacturer")]
+        [Authorize]   //Okta offers a similar set of attributes to either Authorize or AllowAnonymous
+        public IActionResult createManufacturer([FromBody] Manufacturer manufacturer)
+        {
+            var result = _context.Manufacturer.Add(manufacturer);
+            _context.SaveChanges();
+            return Ok(result.Entity);
+        }
+
+        [HttpDelete("api/manufacturer/{id:int}")]
+        [Authorize]  //[Authorize(Roles = "Administrator")]
+        public IActionResult deleteManufacturer(int id)
+        {
+            var manufacturerToDelete = _context.Manufacturer.Find(id);
+
+            if (manufacturerToDelete == null)
+            {
+                return NotFound();
+            }
+            _context.Manufacturer.Remove(manufacturerToDelete);
+            _context.SaveChanges();
+            return Ok();
         }
     }
 }
